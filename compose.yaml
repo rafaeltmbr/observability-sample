@@ -1,0 +1,16 @@
+networks:
+  common_network:
+
+services:
+  web_server:
+    build:
+      context: ./modules/web_server/
+      dockerfile: ./dockerfile
+    networks:
+      - common_network
+    volumes:
+      - ./modules/web_server/.env:/app/.env
+    restart: always
+    ports:
+      - 80:80
+   
