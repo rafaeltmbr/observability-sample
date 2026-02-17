@@ -7,4 +7,5 @@ export const config = {
   amqpBrokerUrl: process.env["AMQP_BROKER_URL"] ?? "",
   amqpFibonacciQueue: process.env["AMQP_FIBONACCI_QUEUE"] ?? "",
   grpcServerAddress: process.env["GRPC_SERVER_ADDRESS"] ?? "",
+  redisUrl: process.env["REDIS_URL"] ?? "",
 };

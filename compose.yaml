@@ -39,6 +39,15 @@ services:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
     profiles:
-      - broker-only
+      - third-party
       - all-services
 
+  cache:
+    image: redis:latest
+    networks:
+      - common_network
+    ports:
+      - 6379:6379
+    profiles:
+      - third-party
+      - all-services

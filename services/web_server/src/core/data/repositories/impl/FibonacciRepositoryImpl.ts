@@ -13,14 +13,20 @@ export class FibonacciRepositoryImpl implements FibonacciRepository {
     try {
       const cached = await this.cache.findByIndex(index);
       if (cached) return cached;
-    } catch {}
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn("Cache findByIndex() failed:", message);
+    }
 
     const persisted = await this.persistentStorage.findByIndex(index);
     if (!persisted) return null;
 
     try {
       await this.cache.save(persisted);
-    } catch {}
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn("Cache save() failed:", message);
+    }
 
     return persisted;
   }
@@ -28,7 +34,10 @@ export class FibonacciRepositoryImpl implements FibonacciRepository {
   async save(numbers: FibonacciNumbers): Promise<void> {
     try {
       await this.cache.save(numbers);
-    } catch {}
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn("Cache save() failed:", message);
+    }
 
     await this.persistentStorage.save(numbers);
   }
@@ -36,7 +45,10 @@ export class FibonacciRepositoryImpl implements FibonacciRepository {
   async clearAll(): Promise<void> {
     try {
       await this.cache.clearAll();
-    } catch {}
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn("Cache clearAll() failed:", message);
+    }
 
     await this.persistentStorage.clearAll();
   }

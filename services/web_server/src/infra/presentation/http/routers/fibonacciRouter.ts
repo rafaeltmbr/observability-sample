@@ -2,15 +2,15 @@ import express from "express";
 
 import { FibonacciController } from "../controllers/FibonacciController";
 import { FibonacciRepositoryImpl } from "../../../../core/data/repositories/impl/FibonacciRepositoryImpl";
-import { FibonacciInMemoryCache } from "../../../data/data_sources/FibonacciInMemoryCache";
 import { FibonacciInMemoryPeristentStorage } from "../../../data/data_sources/FibonacciInMemoryPersistentStorage";
-import { config } from "../../../config";
 import { FibonacciRemoteService } from "../../../services/FibonacciRemoteService";
+import { FibonacciRedisCache } from "../../../data/data_sources/FibonacciRedisCache";
+import { config } from "../../../config";
 
 export const fibonacciRouter = express.Router();
 
 const repository = new FibonacciRepositoryImpl(
-  new FibonacciInMemoryCache(config.cacheExpireInMs),
+  new FibonacciRedisCache(config.cacheExpireInMs, config.redisUrl),
   new FibonacciInMemoryPeristentStorage(),
 );
 
