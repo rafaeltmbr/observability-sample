@@ -11,7 +11,7 @@ import {
 import { FibonacciService } from "../../../../core/service/FibonacciService";
 
 export class FibonacciConsumer {
-  private grpcClient: any;
+  private grpcResponseClient!: FibonacciResponseGrpcClient;
   private fibonacciService = new FibonacciService();
 
   constructor(
@@ -54,6 +54,36 @@ export class FibonacciConsumer {
     }
   }
 
+  private setupGrpcClient() {
+    this.grpcResponseClient = new FibonacciResponseGrpcClient(
+      this.grpcServerAddress,
+      this.grpcFeedbackTimeoutMs,
+    );
+  }
+
+  private async handleAmqpRequest(message: amqp.ConsumeMessage) {
+    try {
+      const index = new FibonacciIndex(JSON.parse(message.content.toString()));
+      const correlationId: string = message.properties.correlationId;
+      const numbers = await this.fibonacciService.execute(index);
+      await this.grpcResponseClient.sendResponse(numbers, correlationId);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn("Fibonacci amqp request error:", message);
+    }
+  }
+}
+
+class FibonacciResponseGrpcClient {
+  private client: any;
+
+  constructor(
+    private serverAddress: string,
+    private feedbackTimeoutMs: number,
+  ) {
+    this.setupGrpcClient();
+  }
+
   private async setupGrpcClient() {
     try {
       const protoPath = path.resolve(
@@ -72,8 +102,8 @@ export class FibonacciConsumer {
         grpc.loadPackageDefinition(packageDefinition)["fibonacci"];
       if (!fibonacciPackage) return;
 
-      this.grpcClient = new fibonacciPackage.Fibonacci(
-        this.grpcServerAddress,
+      this.client = new fibonacciPackage.Fibonacci(
+        this.serverAddress,
         grpc.credentials.createInsecure(),
       );
       console.log("Fibonacci gRPC client created.");
@@ -83,19 +113,7 @@ export class FibonacciConsumer {
     }
   }
 
-  private async handleAmqpRequest(message: amqp.ConsumeMessage) {
-    try {
-      const index = new FibonacciIndex(JSON.parse(message.content.toString()));
-      const correlationId: string = message.properties.correlationId;
-      const numbers = await this.fibonacciService.execute(index);
-      await this.sendGrpcReponse(numbers, correlationId);
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      console.warn("Fibonacci amqp request error:", message);
-    }
-  }
-
-  private async sendGrpcReponse(
+  async sendResponse(
     numbers: FibonacciNumbers,
     correlationId: string,
   ): Promise<void> {
@@ -108,9 +126,9 @@ export class FibonacciConsumer {
 
       const descriptor = setTimeout(() => {
         rej(new Error("gRPC response timeout."));
-      }, this.grpcFeedbackTimeoutMs);
+      }, this.feedbackTimeoutMs);
 
-      this.grpcClient.response(obj, (error: any) => {
+      this.client.response(obj, (error: any) => {
         clearTimeout(descriptor);
 
         if (error) {
