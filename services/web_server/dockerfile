@@ -14,9 +14,9 @@ FROM node:lts
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=80
 
 COPY --from=build /build/dist/ ./dist/
+COPY ./proto/ ./proto/
 COPY package.json package-lock.json ./
 
 RUN npm i --omit=dev

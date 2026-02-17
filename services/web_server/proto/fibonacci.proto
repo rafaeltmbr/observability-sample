@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package fibonacci;
+
+service Fibonacci {
+  rpc response(Response) returns (Empty) {}
+}
+
+message Response {
+  string correlation_id = 1;
+  int32 index = 2;
+  int32 result = 3;
+}
+
+message Empty {
+
+}

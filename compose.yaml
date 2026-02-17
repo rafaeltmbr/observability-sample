@@ -4,13 +4,41 @@ networks:
 services:
   web_server:
     build:
-      context: ./modules/web_server/
+      context: ./services/web_server/
       dockerfile: ./dockerfile
     networks:
       - common_network
     volumes:
-      - ./modules/web_server/.env:/app/.env
+      - ./services/web_server/.env:/app/.env:ro
     restart: always
     ports:
       - 80:80
+    profiles:
+      - all-services
+
+  worker_pool:
+    build:
+      context: ./services/worker_pool/
+      dockerfile: ./dockerfile
+    networks:
+      - common_network
+    volumes:
+      - ./services/worker_pool/.env:/app/.env:ro
+    restart: always
+    profiles:
+      - all-services
    
+  message_broker:
+    image: rabbitmq:management
+    networks:
+      - common_network
+    ports:
+      - 15672:15672
+      - 5672:5672
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    profiles:
+      - broker-only
+      - all-services
+

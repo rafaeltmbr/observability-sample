@@ -1,4 +1,3 @@
-import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
@@ -12,6 +11,6 @@ server.use(express.json());
 server.use("/fibonacci", fibonacciRouter);
 server.use(errorMiddleware);
 
-server.listen(config.httpPort, () => {
-  console.log(`Server listening at http://localhost:${config.httpPort}`);
+server.listen(config.httpServerPort, () => {
+  console.log(`Server listening at http://localhost:${config.httpServerPort}`);
 });
