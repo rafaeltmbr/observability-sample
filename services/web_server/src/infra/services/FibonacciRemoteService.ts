@@ -34,6 +34,7 @@ export class FibonacciRemoteService implements FibonacciService {
     this.requestQueue = new FibonacciRequestAmqpQueue(
       this.amqpBrokerUrl,
       this.amqpQueue,
+      this.responseTimeoutMs,
     );
   }
 
@@ -83,6 +84,7 @@ class FibonacciRequestAmqpQueue {
   constructor(
     private brokerUrl: string,
     private queue: string,
+    private messageExpirationMs: number,
   ) {
     this.setup();
   }
@@ -110,9 +112,14 @@ class FibonacciRequestAmqpQueue {
 
     const requestPayload = Buffer.from(JSON.stringify(index.value));
 
+    console.log(
+      `[AMQP] sending to queue (index=${index.value}, correlationId=${correlationId}).`,
+    );
+
     this.channel.sendToQueue(this.queue, requestPayload, {
       persistent: false,
       correlationId,
+      expiration: this.messageExpirationMs,
     });
   }
 }
@@ -163,7 +170,7 @@ class FibonacciResponseGrpcServer {
       this.start();
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      console.error("gRPC setup error:", message);
+      console.error(`[gRPC] setup error: ${message}.`);
     }
   }
 
@@ -174,7 +181,7 @@ class FibonacciResponseGrpcServer {
       (err, port) => {
         if (err) return console.error(err);
 
-        console.log(`gRPC server listening at localhost:${port}`);
+        console.log(`[gRPC] server listening at localhost:${port}.`);
       },
     );
   }
@@ -186,12 +193,15 @@ class FibonacciResponseGrpcServer {
       const result = new FibonacciResult(call.request.result);
       const numbers = new FibonacciNumbers(index, result);
 
+      console.log(
+        `[gRPC] received (index=${index.value}, correlationId=${correlationId}).`,
+      );
       this.onRequest({ correlationId, numbers });
 
       grpcCallback(null, null);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      console.error("gRPC response error:", message);
+      console.error(`[gRPC] response error: ${message}.`);
       grpcCallback(e, null);
     }
   }

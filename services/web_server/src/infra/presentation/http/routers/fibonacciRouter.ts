@@ -2,16 +2,16 @@ import express from "express";
 
 import { FibonacciController } from "../controllers/FibonacciController";
 import { FibonacciRepositoryImpl } from "../../../../core/data/repositories/impl/FibonacciRepositoryImpl";
-import { FibonacciInMemoryPeristentStorage } from "../../../data/data_sources/FibonacciInMemoryPersistentStorage";
 import { FibonacciRemoteService } from "../../../services/FibonacciRemoteService";
 import { FibonacciRedisCache } from "../../../data/data_sources/FibonacciRedisCache";
+import { FibonacciPostgresPersistentStorage } from "../../../data/data_sources/FibonacciPostresPersistentState";
 import { config } from "../../../config";
 
 export const fibonacciRouter = express.Router();
 
 const repository = new FibonacciRepositoryImpl(
   new FibonacciRedisCache(config.cacheExpireInMs, config.redisUrl),
-  new FibonacciInMemoryPeristentStorage(),
+  FibonacciPostgresPersistentStorage.getInstace(config.postgresUrl),
 );
 
 const service = new FibonacciRemoteService(

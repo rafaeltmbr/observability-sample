@@ -38,6 +38,7 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+    restart: always
     profiles:
       - third-party
       - all-services
@@ -48,6 +49,20 @@ services:
       - common_network
     ports:
       - 6379:6379
+    restart: always
+    profiles:
+      - third-party
+      - all-services
+
+  persistent_storage:
+    image: postgres:latest
+    networks:
+      - common_network
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    restart: always
     profiles:
       - third-party
       - all-services

@@ -27,7 +27,12 @@ export class FibonacciController {
       enablePersistence: req.query["persist"] === "true",
     };
 
+    console.log("\n-----------------------------------\n");
+    console.log(`[HTTP] calculate (index=${index}).`);
+
     const numbers = await calculateFibonacci.execute(params);
+
+    console.log(`[HTTP] response (index=${index}, result=${numbers.result}).`);
 
     res.json({ data: numbers.result });
   }

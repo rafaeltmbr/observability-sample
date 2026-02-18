@@ -47,10 +47,10 @@ export class FibonacciConsumer {
         process.exit(0);
       });
 
-      console.log("Fibonacci AMQP consumer created.");
+      console.log("[AMQP] consumer created.");
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      console.warn("Fibonacci amqp setup error:", message);
+      console.warn("[AMQP] setup error:", message);
     }
   }
 
@@ -65,6 +65,9 @@ export class FibonacciConsumer {
     try {
       const index = new FibonacciIndex(JSON.parse(message.content.toString()));
       const correlationId: string = message.properties.correlationId;
+      console.log(
+        `[AMQP] received (index=${index.value}, correlationId=${correlationId})`,
+      );
       const numbers = await this.fibonacciService.execute(index);
       await this.grpcResponseClient.sendResponse(numbers, correlationId);
     } catch (e: unknown) {
@@ -106,10 +109,10 @@ class FibonacciResponseGrpcClient {
         this.serverAddress,
         grpc.credentials.createInsecure(),
       );
-      console.log("Fibonacci gRPC client created.");
+      console.log("[gRPC] client created.");
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      console.warn("Fibonacci gRPC client setup error:", message);
+      console.warn("[gRPC] setup error:", message);
     }
   }
 
@@ -125,14 +128,20 @@ class FibonacciResponseGrpcClient {
       };
 
       const descriptor = setTimeout(() => {
-        rej(new Error("gRPC response timeout."));
+        rej(new Error("[gRPC] response timeout."));
       }, this.feedbackTimeoutMs);
 
+      console.log(
+        `[gRPC] send response (index=${numbers.index}, correlationId=${correlationId})`,
+      );
       this.client.response(obj, (error: any) => {
         clearTimeout(descriptor);
 
         if (error) {
-          console.log("f", error);
+          console.log(
+            `[gRPC] response failed (index=${numbers.index}, correlationId=${correlationId})`,
+            error,
+          );
           return rej(error);
         }
 

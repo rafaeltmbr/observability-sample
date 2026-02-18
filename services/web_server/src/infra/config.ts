@@ -8,4 +8,5 @@ export const config = {
   amqpFibonacciQueue: process.env["AMQP_FIBONACCI_QUEUE"] ?? "",
   grpcServerAddress: process.env["GRPC_SERVER_ADDRESS"] ?? "",
   redisUrl: process.env["REDIS_URL"] ?? "",
+  postgresUrl: process.env["POSTGRES_URL"] ?? "",
 };

@@ -12,5 +12,7 @@ server.use("/fibonacci", fibonacciRouter);
 server.use(errorMiddleware);
 
 server.listen(config.httpServerPort, () => {
-  console.log(`Server listening at http://localhost:${config.httpServerPort}`);
+  console.log(
+    `[HTTP] server listening at http://localhost:${config.httpServerPort}`,
+  );
 });
