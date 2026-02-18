@@ -1,3 +1,4 @@
+import "../../observability/instrumentation";
 import express from "express";
 import cors from "cors";
 

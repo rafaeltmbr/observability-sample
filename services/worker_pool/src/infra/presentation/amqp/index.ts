@@ -1,3 +1,4 @@
+import "../../observability/instrumentation";
 import { config } from "../../config";
 import { FibonacciConsumer } from "./consumers/FibonacciConsumer";
 
